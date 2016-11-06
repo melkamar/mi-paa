@@ -1,6 +1,6 @@
 class KnapsackSolver:
     def __init__(self, data, capacity):
-        self.data_raw = data
+        self.data_raw = list(data)
         self.capacity = capacity
         super().__init__()
 

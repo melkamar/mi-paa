@@ -11,6 +11,9 @@ class FPTASSolver(knapsacksolver.KnapsackSolver):
         self.items_count = len(self.data_raw)
         self.name = name
 
+        # Save original data
+        self.orig_data = list(data)
+
         # Get rid of some bits
         if max_rel_err == 0:
             self.delete_bits = 0
@@ -39,6 +42,37 @@ class FPTASSolver(knapsacksolver.KnapsackSolver):
 
         for i in range(1, self.values_sum + 1):
             self.matrix[i, 0] = -1
+
+    def find_orig_value(self):
+        """
+        Construct the solution as a tuple: (best_value, list of items [True/False]).
+        """
+        # Now just go through last column in matrix and find best solution that fits in the bag.
+
+        # index of the best value
+        best_idx = -1
+        for i in range(self.values_sum, -1, -1):
+            val = self.matrix[i, self.items_count]
+            if -1 < val <= self.capacity:
+                best_idx = i
+                break
+
+        # now step-by-step work out the items placed in the bag
+        items = [False] * self.items_count
+        value_idx = best_idx
+        for i in range(self.items_count, 0, -1):
+            if self.matrix[value_idx, i] == self.matrix[value_idx, i - 1]:
+                pass
+            else:
+                items[i - 1] = True
+                value_idx -= self.data_raw[i - 1][0]
+
+        final_value = 0
+        for i in range(0, self.items_count):
+            if items[i]:
+                final_value += self.orig_data[i][0]
+
+        return final_value, items
 
     def solve_bag(self):
         # print("({}) fptas items: {}".format(self.name, (self.items_count + 1) * (self.values_sum + 1)))
@@ -88,7 +122,10 @@ class FPTASSolver(knapsacksolver.KnapsackSolver):
         # Now just go through last column in matrix and find best solution that fits in the bag.
         # print(self.matrix)
 
-        for i in range(self.values_sum, -1, -1):
-            val = self.matrix[i, self.items_count]
-            if -1 < val <= self.capacity:
-                return i
+        best_val, items = self.find_orig_value()
+        # print("{} :: {} | {}".format(self.name, best_val, items))
+        return best_val
+        # for i in range(self.values_sum, -1, -1):
+        #     val = self.matrix[i, self.items_count]
+        #     if -1 < val <= self.capacity:
+        #         return i
