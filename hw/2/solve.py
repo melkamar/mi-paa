@@ -4,6 +4,11 @@ import os
 import bbsolver
 import dpsolver
 import fptassolver
+import logging
+
+logger = logging.getLogger()
+logging.basicConfig(filename="solve.log")
+logger.addHandler(logging.StreamHandler())
 
 
 def solve_knapsack_by_weight(data):
@@ -38,8 +43,14 @@ files = ['knap_4.inst.dat', 'knap_10.inst.dat', 'knap_15.inst.dat', 'knap_20.ins
 
 # (27 38) (2 86) (41 112) (1 0) (25 66) (1 97) (34 195) (3 85) (50 42) (12 223)
 
-fptas_max_rel_errors = numpy.arange(0.1, 0.8, 0.1)
+fptas_max_rel_errors = numpy.arange(0.1, 1.0, 0.1)
+
+
 # fptas_max_rel_errors = [0]
+
+def calculate_err(optimal_value, calculated_value):
+    return (optimal_value - calculated_value) / optimal_value
+
 
 for fn in [os.path.join('data', fn) for fn in files]:
     with open(fn) as file:
@@ -47,8 +58,10 @@ for fn in [os.path.join('data', fn) for fn in files]:
         dp_time_per_file = 0
 
         fptas_err_times_file = {}
+        fptas_max_observed_rel_error = {}
         for item in fptas_max_rel_errors:
             fptas_err_times_file[item] = 0
+            fptas_max_observed_rel_error[item] = 0
 
         for line_idx, line in enumerate(file):
             data = parse_data_line(line)
@@ -62,8 +75,8 @@ for fn in [os.path.join('data', fn) for fn in files]:
             # print(" bbsolve: {}".format(bb_res))
 
             # dpsolve
-            # solver = dpsolver.DPSolver(data[3], data[2])
-            solver = fptassolver.FPTASSolver(data[3], data[2])
+            solver = dpsolver.DPSolver(data[3], data[2])
+            # solver = fptassolver.FPTASSolver(data[3], data[2], max_rel_err=0)
             dp_time_start = time.process_time()
             dp_res = solver.solve_bag()
             dp_time_end = time.process_time()
@@ -71,24 +84,25 @@ for fn in [os.path.join('data', fn) for fn in files]:
             # print(" dpsolve: {}".format(dp_res))
 
             # fptas solver
-            for e in fptas_max_rel_errors:
-                solver = fptassolver.FPTASSolver(data[3], data[2], max_rel_err=e, name="{} #{} e={}".format(fn, line_idx, e))
-                fptas_time_start = time.process_time()
-                fptas_res = solver.solve_bag()
-                fptas_time_end = time.process_time()
-
-                prev_time = fptas_err_times_file[e]
-                fptas_err_times_file[e] = prev_time + fptas_time_end - fptas_time_start
-
-            # print(" fpsolve: {}".format(fptas_res))
-
-            # break
-
-            # if bb_res != dp_res or dp_res != fptas_res or bb_res != fptas_res:
-            #     print("RESULTS DONT MATCH!")
-            #     break
-
-            # print("Time: {}".format(time_file / 50.0))
+            # for e in fptas_max_rel_errors:
+            #     solver = fptassolver.FPTASSolver(data[3], data[2], max_rel_err=e,
+            #                                      name="{} #{} e={}".format(fn, line_idx, e))
+            #     fptas_time_start = time.process_time()
+            #     fptas_res = solver.solve_bag()
+            #     fptas_time_end = time.process_time()
+            #     prev_time = fptas_err_times_file[e]
+            #     fptas_err_times_file[e] = prev_time + fptas_time_end - fptas_time_start
+            #
+            #     rel_err = calculate_err(dp_res, fptas_res)
+            #     # print("Correct: {}  obtained: {}    |  err: {}".format(dp_res, fptas_res, rel_err))
+            #     # print("### dp: {}    fptas: {}    -> err: {}".format(dp_res, fptas_res, rel_err))
+            #     fptas_max_observed_rel_error[e] = max(rel_err, fptas_max_observed_rel_error[e])
+            #
+            #     # print(" fpsolve: {}".format(fptas_res))
+            #
+            #     # if bb_res != dp_res or dp_res != fptas_res or bb_res != fptas_res:
+            #     #     print("RESULTS DONT MATCH!")
+            #     #     break
 
         lines_count = line_idx + 1
         bb_avg_time_instance = bb_time_per_file / lines_count
@@ -99,23 +113,23 @@ for fn in [os.path.join('data', fn) for fn in files]:
             avg_time = fptas_err_times_file.get(key) / lines_count
             # print("{} - avg time FPTAS: {}  e={}".format(fn, avg_time, key))
 
-        print("""REPORT for file: {}
-        """.format(fn))
-        print("""
-        Total times:
-          BB: {}
-          DP: {}
-          FPTAS (err:time): {}
-        """.format(bb_time_per_file, dp_time_per_file, fptas_err_times_file))
+        logger.warn("REPORT for file: {}".format(fn))
+        #         print("""
+        # Total times:
+        #   BB: {}
+        #   DP: {}
+        #   FPTAS (err:time): {}
+        #         """.format(bb_time_per_file, dp_time_per_file, fptas_err_times_file))
 
-        print("""
-        Average times:
-          BB: {}
-          DP: {}
-          FPTAS (err:time): {}
-        """.format(bb_avg_time_instance,
-                   dp_avg_time_instance,
-                   ["e={} t={}".format(key, fptas_err_times_file.get(key) / lines_count) for key in
-                    sorted(fptas_err_times_file.keys())]))
+        logger.warn("""
+  BB: {}
+  DP: {}""".format(bb_avg_time_instance,
+                   dp_avg_time_instance))
 
-        print("\n\n")
+        for key in sorted(fptas_err_times_file.keys()):
+            logger.warn("  FPTAS e={:.2f} t={:.8f} max_rel_err={:.16f}".format(key,
+                                                                         fptas_err_times_file.get(key) / lines_count,
+                                                                         fptas_max_observed_rel_error[key]))
+
+        logger.warn("")
+        logger.warn("")

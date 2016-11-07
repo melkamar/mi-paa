@@ -15,7 +15,7 @@ class DPSolver(knapsacksolver.KnapsackSolver):
             self.matrix[1, idx + 1] = item[0]
 
     def solve_bag(self):
-        print("dp items:    {}".format((len(self.data_raw) + 1) * (self.capacity + 1)))
+        # print("dp items:    {}".format((len(self.data_raw) + 1) * (self.capacity + 1)))
         for i in range(1, len(self.data_raw) + 1):
             for j in range(0, self.capacity + 1):
                 cur_weight = self.data_raw[i - 1][1]

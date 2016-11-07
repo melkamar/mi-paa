@@ -19,8 +19,15 @@ class FPTASSolver(knapsacksolver.KnapsackSolver):
             self.delete_bits = 0
         else:
             max_value = max([item[0] for item in self.data_raw])
-            self.delete_bits = math.floor(math.log(max_rel_err * max_value / float(self.items_count)))
-        self.data_raw = [(int(item[0] // (2 ** self.delete_bits)), item[1]) for item in self.data_raw]
+            self.delete_bits = math.floor(math.log(max_rel_err * max_value / float(self.items_count), 2))
+            # print("max_e={:.1f}   ->   deleting {} bits. (divide by {}, max value: {})".format(max_rel_err,
+            #                                                                                    self.delete_bits,
+            #                                                                                    (2 ** self.delete_bits),
+            #                                                                                    max_value))
+            self.data_raw = [(int(item[0] // (2 ** self.delete_bits)), item[1]) for item in self.data_raw]
+            new_max = max([item[0] for item in self.data_raw])
+            # print("Reduced e={}: {} -> {}".format(max_rel_err, max_value, new_max))
+            # print("New data: {}".format(self.data_raw))
 
         values_sum = 0
         for item in self.data_raw:
@@ -124,6 +131,7 @@ class FPTASSolver(knapsacksolver.KnapsackSolver):
 
         best_val, items = self.find_orig_value()
         # print("{} :: {} | {}".format(self.name, best_val, items))
+        # print("    name={} items: {}".format(self.name, items))
         return best_val
         # for i in range(self.values_sum, -1, -1):
         #     val = self.matrix[i, self.items_count]
