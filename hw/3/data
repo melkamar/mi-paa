@@ -1,0 +1,269 @@
+-W  --  maximální váze věcí
+-C  --  maximální ceně věcí
+-m  --  poměru kapacity batohu k sumární váze
+-k  --  granularitě (pozor - zde si uvědomte smysl exponentu granularity)
+
+
+Hrubá síla - netřeba, je to necitlivý
+
+==================
+B&B
+
+max váha
+./generator -n 25 -N 50 -m 0.6 -W 50   -C 100 -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/W/50.data
+./generator -n 25 -N 50 -m 0.6 -W 100  -C 100 -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/W/100.data
+./generator -n 25 -N 50 -m 0.6 -W 200  -C 100 -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/W/200.data
+./generator -n 25 -N 50 -m 0.6 -W 500  -C 100 -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/W/500.data
+./generator -n 25 -N 50 -m 0.6 -W 1000 -C 100 -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/W/1000.data
+./generator -n 25 -N 50 -m 0.6 -W 2000 -C 100 -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/W/2000.data
+./generator -n 25 -N 50 -m 0.6 -W 5000 -C 100 -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/W/5000.data
+
+50 -- 0.265625
+100 -- 0.27375
+200 -- 0.3209375
+500 -- 0.21375
+1000 -- 0.2334375
+2000 -- 0.2009375
+5000 -- 0.3115625
+^Maximální váha         ^ výpočetní doba [ms] ^
+|50         | 0.265625      |
+|100         | 0.27375      |
+|200         | 0.3209375      |
+|500         | 0.21375      |
+|1000         | 0.2334375      |
+|2000         | 0.2009375      |
+|5000         | 0.3115625      |
+
+max cena
+./generator -n 25 -N 50 -m 0.6 -W 100   -C 50    -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/C/50.data
+./generator -n 25 -N 50 -m 0.6 -W 100   -C 100   -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/C/100.data
+./generator -n 25 -N 50 -m 0.6 -W 100   -C 200   -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/C/200.data
+./generator -n 25 -N 50 -m 0.6 -W 100   -C 500   -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/C/500.data
+./generator -n 25 -N 50 -m 0.6 -W 100   -C 1000  -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/C/1000.data
+./generator -n 25 -N 50 -m 0.6 -W 100   -C 2000  -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/C/2000.data
+./generator -n 25 -N 50 -m 0.6 -W 100   -C 5000  -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/C/5000.data
+
+50   0.3021875
+100  0.246875
+200  0.219375
+500  0.28375
+1000 0.2159375
+2000 0.2409375
+5000 0.2525
+
+^Maximální cena         ^ výpočetní doba [ms] ^
+|50         | 0.3021875 |
+|100         | 0.246875 |
+|200         | 0.219375 |
+|500         | 0.28375 |
+|1000         | 0.2159375 |
+|2000         | 0.2409375 |
+|5000         | 0.2525 |
+
+
+poměr
+-n 25 -N 100 -m 0.2 -W 100 -C 100 -k 0 -d 0
+ ./generator -n 25 -N 50 -m 0.001 -W 100 -C 100 -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/m/0001.data
+ ./generator -n 25 -N 50 -m 0.01 -W 100 -C 100 -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/m/001.data
+ ./generator -n 25 -N 50 -m 0.1 -W 100 -C 100 -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/m/01.data
+ ./generator -n 25 -N 50 -m 0.2 -W 100 -C 100 -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/m/02.data
+ ./generator -n 25 -N 50 -m 0.3 -W 100 -C 100 -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/m/03.data
+ ./generator -n 25 -N 50 -m 0.4 -W 100 -C 100 -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/m/04.data
+ ./generator -n 25 -N 50 -m 0.5 -W 100 -C 100 -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/m/05.data
+ ./generator -n 25 -N 50 -m 0.6 -W 100 -C 100 -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/m/06.data
+ ./generator -n 25 -N 50 -m 0.7 -W 100 -C 100 -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/m/07.data
+ ./generator -n 25 -N 50 -m 0.8 -W 100 -C 100 -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/m/08.data
+ ./generator -n 25 -N 50 -m 0.9 -W 100 -C 100 -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/m/09.data
+ ./generator -n 25 -N 50 -m 1 -W 100 -C 100 -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/m/1.data
+ ./generator -n 25 -N 50 -m 2 -W 100 -C 100 -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/m/2.data
+ ./generator -n 25 -N 50 -m 3 -W 100 -C 100 -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/m/3.data
+ ./generator -n 25 -N 50 -m 4 -W 100 -C 100 -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/m/4.data
+ ./generator -n 25 -N 50 -m 5 -W 100 -C 100 -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/m/5.data
+ ./generator -n 25 -N 50 -m 6 -W 100 -C 100 -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/m/6.data
+ ./generator -n 25 -N 50 -m 7 -W 100 -C 100 -k 0 -d 0 > /media/sf_D_DRIVE/paa-data/bb/m/7.data
+
+ 0001 -- 0.0
+ 001 -- 0.0003125
+ 01 -- 0.01
+ 02 -- 0.14375
+ 03 -- 0.534375
+ 04 -- 0.728125
+ 05 -- 0.483125
+ 06 -- 0.1934375
+ 07 -- 0.0490625
+ 08 -- 0.009375
+ 09 -- 0.001875
+ 1 -- 0.000625
+ 2 -- 0.000625
+ 5 -- 0.000625
+
+^Poměr kapacity ku celkové hmotnosti         ^ výpočetní doba [ms] ^
+|001 | 0.0003125 |
+|01 | 0.01 |
+|02 | 0.14375 |
+|03 | 0.534375 |
+|04 | 0.728125 |
+|05 | 0.483125 |
+|06 | 0.1934375 |
+|07 | 0.0490625 |
+|08 | 0.009375 |
+|09 | 0.001875 |
+|1 | 0.000625 |
+|2 | 0.000625 |
+|5 | 0.000625 |
+
+granularita
+./generator -n 25 -N 50 -m 0.6 -W 100 -C 100 -k 3 -d -1 > /media/sf_D_DRIVE/paa-data/bb/k/3-1.data
+./generator -n 25 -N 50 -m 0.6 -W 100 -C 100 -k 2 -d -1 > /media/sf_D_DRIVE/paa-data/bb/k/2-1.data
+./generator -n 25 -N 50 -m 0.6 -W 100 -C 100 -k 1 -d -1 > /media/sf_D_DRIVE/paa-data/bb/k/1-1.data
+./generator -n 25 -N 50 -m 0.6 -W 100 -C 100 -k 0 -d 0  > /media/sf_D_DRIVE/paa-data/bb/k/0.data
+./generator -n 25 -N 50 -m 0.6 -W 100 -C 100 -k 1 -d 1  > /media/sf_D_DRIVE/paa-data/bb/k/11.data
+./generator -n 25 -N 50 -m 0.6 -W 100 -C 100 -k 2 -d 1  > /media/sf_D_DRIVE/paa-data/bb/k/21.data
+./generator -n 25 -N 50 -m 0.6 -W 100 -C 100 -k 3 -d 1  > /media/sf_D_DRIVE/paa-data/bb/k/31.data
+
+^Parametr k ^ Parametr d ^ výpočetní doba [ms] ^
+| 3 | -1 |0.0921875|
+| 2 | -1 |0.1009375|
+| 1 | -1 |0.1140625|
+| 0 | 0 |0.2225|
+| 1 | 1 |0.3778125|
+| 2 | 1 |0.571875|
+| 3 | 1 |0.56375|
+
+============================================
+DP
+Max váha - dek. podle váhy
+
+Generováno s parametry ''-n 25 -N 50 -m 0.6 -W <parametr> -C 100 -k 0 -d 0''
+^Maximální váha   ^ Dek. podle váhy, výpočetní doba [ms] ^ Dek. podle ceny, výpočetní doba [ms] ^
+|50 | 0.0203125 | 0.0771875 |
+|100 | 0.040625 | 0.075 |
+|200 | 0.0825 | 0.07625 |
+|500 | 0.2103125 | 0.0765625 |
+|1000 | 0.4234375 | 0.0759375 |
+|2000 | 0.8915625 | 0.07625 |
+|5000 | 2.14375 | 0.079375 |
+
+Max cena -dek podle váhy
+Generováno s parametry ''-n 25 -N 50 -m 0.6 -W 100 -C <parametr> -k 0 -d 0''
+^Maximální cena   ^ Dek. podle váhy, výpočetní doba [ms] ^ Dek. podle ceny, výpočetní doba [ms] ^
+|50 | 0.0396875 | 0.0421875 |
+|100 | 0.0396875 |0.075 |
+|200 | 0.0390625 |0.1521875 |
+|500 | 0.0403125 |0.4009375 |
+|1000 | 0.0425 |  0.7734375 |
+|2000 | 0.039375 |1.4803125 |
+|5000 | 0.040625 |3.67625 |
+
+Max váha - dek podle ceny
+0.0771875
+0.075
+0.07625
+0.0765625
+0.0759375
+0.07625
+0.079375
+
+Max cena - dek podle ceny
+
+
+
+
+============================================
+Heuristika
+
+Max cena
+n=25 avgrelerr=0.004294247812194198 maxrelerr=0.019933554817275746 brutetime=0.000000 heuritime=0.000025
+n=25 avgrelerr=0.0023859647345809347 maxrelerr=0.03233830845771144 brutetime=0.000000 heuritime=0.000025
+n=25 avgrelerr=0.005340452428003021 maxrelerr=0.027551942186088526 brutetime=0.000000 heuritime=0.000022
+n=25 avgrelerr=0.00417818694312152 maxrelerr=0.014960346070656091 brutetime=0.000000 heuritime=0.000041
+n=25 avgrelerr=0.0031719887201014747 maxrelerr=0.024218894435200592 brutetime=0.000000 heuritime=0.000034
+n=25 avgrelerr=0.005106144743533575 maxrelerr=0.02889983579638752 brutetime=0.000000 heuritime=0.000031
+n=25 avgrelerr=0.002737759420999944 maxrelerr=0.018059547697814416 brutetime=0.000000 heuritime=0.000044
+
+== Maximální cena ==
+Generováno s parametry ''-n 25 -N 50 -m 0.6 -W 100 -C <parametr> -k 0 -d 0''
+^Maximální cena         ^ průměrná relativní chyba ^
+|50         | 0.0042942 |
+|100         | 0.00238596 |
+|200         | 0.0053404 |
+|500         | 0.004178 |
+|1000         | 0.00317198 |
+|2000         | 0.0051061 |
+|5000         | 0.0027377 |
+
+Max váha
+n=25 avgrelerr=0.003896740595490888 maxrelerr=0.020554066130473638 brutetime=0.000000 heuritime=0.000056
+n=25 avgrelerr=0.006069293089052161 maxrelerr=0.03137651821862348 brutetime=0.000000 heuritime=0.000031
+n=25 avgrelerr=0.0051903618223248195 maxrelerr=0.027972027972027972 brutetime=0.000000 heuritime=0.000037
+n=25 avgrelerr=0.005824210467512462 maxrelerr=0.02761982128350934 brutetime=0.000000 heuritime=0.000013
+n=25 avgrelerr=0.004372889002252648 maxrelerr=0.021538461538461538 brutetime=0.000000 heuritime=0.000028
+n=25 avgrelerr=0.0039575891150145474 maxrelerr=0.022452504317789293 brutetime=0.000000 heuritime=0.000037
+n=25 avgrelerr=0.004912438618356392 maxrelerr=0.01896551724137931 brutetime=0.000000 heuritime=0.000037
+
+== Maximální váha ==
+Generováno s parametry ''-n 25 -N 50 -m 0.6 -W <parametr> -C 100 -k 0 -d 0''
+^Maximální váha         ^ průměrná relativní chyba ^
+|50         | 0.003896 |
+|100         | 0.006069 |
+|200         | 0.005190 |
+|500         | 0.005824 |
+|1000         | 0.004372 |
+|2000         | 0.003957 |
+|5000         | 0.004912 |
+
+poměr
+001 n=25 avgrelerr=nan maxrelerr=0.5061728395061729 brutetime=0.000000 heuritime=0.000041
+01 n=25 avgrelerr=0.011508708411626904 maxrelerr=0.1377672209026128 brutetime=0.000000 heuritime=0.000025
+02 n=25 avgrelerr=0.010213895937731756 maxrelerr=0.05063291139240506 brutetime=0.000000 heuritime=0.000041
+03 n=25 avgrelerr=0.008038853105833892 maxrelerr=0.04868421052631579 brutetime=0.000000 heuritime=0.000019
+04 n=25 avgrelerr=0.005142189704840341 maxrelerr=0.03423236514522822 brutetime=0.000000 heuritime=0.000019
+05 n=25 avgrelerr=0.004174409170699068 maxrelerr=0.03838771593090211 brutetime=0.000000 heuritime=0.000031
+06 n=25 avgrelerr=0.004676698779400959 maxrelerr=0.024850042844901457 brutetime=0.000000 heuritime=0.000047
+07 n=25 avgrelerr=0.0024187994955110963 maxrelerr=0.021014492753623187 brutetime=0.000000 heuritime=0.000047
+08 n=25 avgrelerr=0.0019328402522907795 maxrelerr=0.01697216564833673 brutetime=0.000000 heuritime=0.000037
+09 n=25 avgrelerr=0.0006887013281803896 maxrelerr=0.00777000777000777 brutetime=0.000000 heuritime=0.000025
+1 n=25 avgrelerr=0.0 maxrelerr=0.0 brutetime=0.000000 heuritime=0.000031
+2 n=25 avgrelerr=0.0 maxrelerr=0.0 brutetime=0.000000 heuritime=0.000025
+3 n=25 avgrelerr=0.0 maxrelerr=0.0 brutetime=0.000000 heuritime=0.000053
+4n=25 avgrelerr=0.0 maxrelerr=0.0 brutetime=0.000000 heuritime=0.000022
+5n=25 avgrelerr=0.0 maxrelerr=0.0 brutetime=0.000000 heuritime=0.000031
+6n=25 avgrelerr=0.0 maxrelerr=0.0 brutetime=0.000000 heuritime=0.000041
+7n=25 avgrelerr=0.0 maxrelerr=0.0 brutetime=0.000000 heuritime=0.000028
+
+== Poměr kapacity a celkové hmotnosti ==
+Generováno s parametry ''-n 25 -N 50 -m <parametr> -W 100 -C 100 -k 0 -d 0''
+^Poměr kapacity a celkové hmotnosti         ^ průměrná relativní chyba ^
+|01 | 0.011508708411626904  |
+|02 | 0.010213895937731756  |
+|03 | 0.008038853105833892  |
+|04 | 0.005142189704840341  |
+|05 | 0.004174409170699068  |
+|06 | 0.004676698779400959  |
+|07 | 0.0024187994955110963  |
+|08 | 0.0019328402522907795  |
+|09 | 0.0006887013281803896  |
+|1 | 0.0  |
+|2 | 0.0  |
+|5 | 0.0 |
+
+
+k
+n=25 avgrelerr=0.004256088202239319 maxrelerr=0.03593890386343217 brutetime=0.000000 heuritime=0.000056
+n=25 avgrelerr=0.004649675769109431 maxrelerr=0.03137651821862348 brutetime=0.000000 heuritime=0.000031
+n=25 avgrelerr=0.004803917516515889 maxrelerr=0.035545023696682464 brutetime=0.000000 heuritime=0.000019
+n=25 avgrelerr=0.00350119118896215 maxrelerr=0.028222013170272814 brutetime=0.000000 heuritime=0.000031
+n=25 avgrelerr=0.0027382466294455137 maxrelerr=0.016814159292035398 brutetime=0.000000 heuritime=0.000047
+n=25 avgrelerr=0.003896742797750424 maxrelerr=0.022549869904596703 brutetime=0.000000 heuritime=0.000034
+n=25 avgrelerr=0.00345002441984821 maxrelerr=0.022429906542056073 brutetime=0.000000 heuritime=0.000041
+
+== Granularita ==
+Generováno s parametry ''-n 25 -N 50 -m 0.6 -W 100 -C 100 -k <parametr> -d <parametr>''
+^Parametr k ^ Parametr d ^ průměrná relativní chyba ^
+| 3 | -1 |0.004256|
+| 2 | -1 |0.004649|
+| 1 | -1 |0.004803|
+| 0 | 0 |0.00350|
+| 1 | 1 |0.0027382|
+| 2 | 1 |0.003896|
+| 3 | 1 |0.00345|
