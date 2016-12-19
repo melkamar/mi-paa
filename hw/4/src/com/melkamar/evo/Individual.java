@@ -63,6 +63,6 @@ public class Individual implements Comparable {
     @Override
     public int compareTo(Object o) {
         if (!(o instanceof Individual)) return 1;
-        return ((Individual) o).fitness - this.fitness;
+        return this.fitness - ((Individual) o).fitness;
     }
 }
