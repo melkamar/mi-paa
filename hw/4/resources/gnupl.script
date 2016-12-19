@@ -1,0 +1,10 @@
+set datafile separator ","
+set terminal pngcairo font ',8' enhanced
+set output 'graphs/-cross0.5-mut0.01-tour3-pop200-gen1500.png'
+set style data lines
+set key on autotitle columnhead inside bottom right
+set xlabel "generation"
+set ylabel "fitness"
+plot "graphs/-cross0.5-mut0.01-tour3-pop200-gen1500.dat" using 0:1 title 'max', \
+     '' using 0:2 title 'avg', \
+     '' using 0:3 title 'min'

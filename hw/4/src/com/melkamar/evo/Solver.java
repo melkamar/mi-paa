@@ -1,7 +1,5 @@
 package com.melkamar.evo;
 
-import jdk.nashorn.internal.runtime.PrototypeObject;
-
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.ArrayList;
@@ -16,12 +14,8 @@ public class Solver {
         Problem[] problems = readProblemFile("D:\\cvut-checkouted\\mi-paa\\hw\\4\\resources\\problems\\knap_500.dat");
 
         for (Problem problem: problems){
-            System.out.println("Problem: "+problem);
             Evolution evolution = new Evolution(problem);
             int result = evolution.solve();
-            System.out.println("    --> "+result);
-
-            break;
         }
     }
 

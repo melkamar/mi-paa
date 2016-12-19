@@ -26,7 +26,6 @@ public class Individual implements Comparable {
 
     public static Individual createEmpty(Problem problem) {
         Individual individual = new Individual(problem);
-//        individual.randomize();
         individual.recalculateStats();
 
         return individual;
@@ -53,28 +52,37 @@ public class Individual implements Comparable {
         fitness = stats[2];
     }
 
-//    public Individual(Problem problem, boolean[] solutionVect) {
-//        this.problem = problem;
-//        this.solutionVect = Arrays.copyOf(solutionVect, solutionVect.length);
-//
-//        fitness = countStats();
-//    }
-
     public void randomize() {
         Random rnd = new Random();
         for (int i = 0; i < solutionVect.length; i++)
             solutionVect[i] = rnd.nextBoolean();
     }
 
+    /**
+     * Mutate some random bits.
+     * @return
+     */
     public Individual mutate() {
         Individual newIndividual = new Individual(this);
-//        for (int i = 0; i < solutionVect.length; i++) {
-//            if (rnd.nextDouble() > BIT_FLIP_PROBABILITY) continue;
-//
-//            individual.solutionVect[i] = !individual.solutionVect[i];
-//        }
-        int idx = rnd.nextInt(newIndividual.solutionVect.length);
-        newIndividual.solutionVect[idx] = !newIndividual.solutionVect[idx];
+        for (int i = 0; i < rnd.nextInt(solutionVect.length / 2); i++) {
+            int idx = rnd.nextInt(newIndividual.solutionVect.length);
+            newIndividual.solutionVect[idx] = !newIndividual.solutionVect[idx];
+        }
+
+        return newIndividual;
+    }
+
+    /**
+     * For each bit get probability and invert if proc.
+     * @param probability
+     * @return
+     */
+    public Individual mutateAlternative(double probability) {
+        Individual newIndividual = new Individual(this);
+        for (int i = 0; i < newIndividual.solutionVect.length; i++) {
+            if (rnd.nextDouble() > probability) continue;
+            newIndividual.solutionVect[i] = !newIndividual.solutionVect[i];
+        }
 
         return newIndividual;
     }
@@ -127,7 +135,6 @@ public class Individual implements Comparable {
                 "fitness=" + fitness +
                 ", weight=" + weight +
                 ", value=" + value +
-//                ", solutionVect=" + Arrays.toString(solutionVect) +
                 '}';
     }
 
