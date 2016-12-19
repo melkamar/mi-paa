@@ -17,6 +17,9 @@ public class Solver {
 
         for (Problem problem: problems){
             System.out.println("Problem: "+problem);
+            Evolution evolution = new Evolution(problem);
+            int result = evolution.solve();
+            System.out.println("    --> "+result);
         }
     }
 
@@ -49,6 +52,5 @@ public class Solver {
 
         return new Problem(id, items, maxWeight);
     }
-
 
 }
