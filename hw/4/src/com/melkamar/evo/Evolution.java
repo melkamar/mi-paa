@@ -10,19 +10,22 @@ public class Evolution {
     private Individual[] population;
     private Random rnd = new Random();
 
-    private double PROBABILITY_CROSSOVER = 0.05;
-    private double PROBABILITY_MUTATION = 0.05;
-    private int TOURNAMENT_SIZE = 10;
+    private double PROBABILITY_CROSSOVER = 0.25;
+    private double PROBABILITY_MUTATION = 0.20;
+    private int TOURNAMENT_SIZE = 4;
+    private int POPULATION_SIZE = 200;
 
-    private final int generations = 1000;
+    private final int generations = 500;
 
     public Evolution(Problem problem) {
         this.problem = problem;
+        population = new Individual[POPULATION_SIZE];
     }
 
     public int solve() {
         initPopulation();
 
+        Individual startBest = getBest();
         for (int generation = 1; generation < generations + 1; generation++) {
             List<Individual> currentIndividuals = new ArrayList<>(Arrays.asList(population));
             doCrossovers(currentIndividuals);
@@ -30,18 +33,32 @@ public class Evolution {
 
             doSelection(currentIndividuals);
 
-            System.out.println("\n================================================");
-            System.out.println("Generation "+generation+" completed. Stats:");
-            System.out.println("  best individual: "+getBest());
-            System.out.println("================================================\n");
+            System.out.println(stats(generation));
         }
+        Individual endBest = getBest();
+
+        System.out.println("Improvement:");
+        System.out.println("   " + startBest);
+        System.out.println("   " + endBest);
 
         return 0;
     }
 
-    private Individual getBest(){
+    private String stats(int idx) {
+        return new StringBuilder()
+//                .append("\n")
+//                .append("================================================\n")
+//                .append("Generation " + idx + " completed.\n")
+                .append("  best: " + getBest() + "\n")
+                .append("  average fitness: " + getAverage() + "\n")
+                .append("  worst: " + getWorst() + "\n")
+//                .append("================================================\n")
+                .toString();
+    }
+
+    private Individual getBest() {
         Individual best = null;
-        for (int indIdx= 0; indIdx < population.length; indIdx++) {
+        for (int indIdx = 0; indIdx < population.length; indIdx++) {
             if (best == null || population[indIdx].compareTo(best) > 0) {
                 best = population[indIdx];
             }
@@ -50,10 +67,34 @@ public class Evolution {
         return best;
     }
 
+    private Individual getWorst() {
+        Individual worst = null;
+        for (int indIdx = 0; indIdx < population.length; indIdx++) {
+            if (worst == null || population[indIdx].compareTo(worst) < 0) {
+                worst = population[indIdx];
+            }
+        }
+
+        return worst;
+    }
+
+    private double getAverage() {
+        int totalFitness = 0;
+        for (int indIdx = 0; indIdx < population.length; indIdx++) {
+            totalFitness += population[indIdx].fitness;
+        }
+
+        return ((double) totalFitness) / population.length;
+    }
+
     private void initPopulation() {
-        for (int i = 0; i < problem.itemsCount; i++) {
-            population[i] = new Individual(problem);
-            population[i].randomize();
+        int typeIdx = population.length / 3;
+        for (int i = 0; i < typeIdx; i++) {
+            population[i] = Individual.createEmpty(problem);
+        }
+
+        for (int i = typeIdx; i < population.length; i++) {
+            population[i] = Individual.createRandom(problem);
         }
     }
 
@@ -68,25 +109,32 @@ public class Evolution {
         for (int i = 0; i < currentIndividuals.size(); i++) randomNums.add(i);
 
         for (int individualIdx = 0; individualIdx < population.length; individualIdx++) {
-            // Use randomNums as list of random indices, from those take the best individual
+            // Use randomNums as list of random indices, from those take the best individual and remove from pool
+            // If there are not enough individuals, reinitialize
+            if (randomNums.size() < TOURNAMENT_SIZE) {
+                randomNums.clear();
+                for (int i = 0; i < currentIndividuals.size(); i++) randomNums.add(i);
+            }
+
             Collections.shuffle(randomNums);
 
             Individual best = null;
+            int bestIdx = 0;
             for (int tournamentIdx = 0; tournamentIdx < TOURNAMENT_SIZE; tournamentIdx++) {
                 int indIdx = randomNums.get(tournamentIdx);
                 if (best == null || currentIndividuals.get(indIdx).compareTo(best) > 0) {
                     best = currentIndividuals.get(indIdx);
+                    bestIdx = tournamentIdx;
                 }
-
-                population[individualIdx] = best;
             }
+            population[individualIdx] = best;
+            randomNums.remove(bestIdx);
         }
     }
 
     private void doCrossovers(List<Individual> currentIndividuals) {
         for (int i = 0; i < population.length; i++) {
-            if (rnd.nextDouble() > PROBABILITY_CROSSOVER) return;
-
+            if (rnd.nextDouble() > PROBABILITY_CROSSOVER) continue;
             int anotherIndex = rnd.nextInt(population.length);
             if (anotherIndex == i) {
                 // dont want to crossover with the same individual - get next one
@@ -101,7 +149,7 @@ public class Evolution {
 
     private void doMutation(List<Individual> currentIndividuals) {
         for (int i = 0; i < population.length; i++) {
-            if (rnd.nextDouble() > PROBABILITY_MUTATION) return;
+            if (rnd.nextDouble() > PROBABILITY_MUTATION) continue;
 
             currentIndividuals.add(population[i].mutate());
         }
