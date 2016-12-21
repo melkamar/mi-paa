@@ -1,14 +1,38 @@
 package com.melkamar.sat;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Paths;
 import java.util.Random;
 
 /**
  * Created by Martin Melka (martin.melka@gmail.com) on 20.12.2016 10:07.
  */
 public class Generator {
-    public static void main(String[] args) {
-        System.out.println(generate(10, 4.3));
+    public static void main(String[] args) throws IOException, URISyntaxException {
+//        String problem = generate(10, 2);
+//
+//        BufferedWriter bw = new BufferedWriter(new FileWriter("hw\\5\\resources\\problem"));
+//        bw.write(problem);
+//        bw.close();
+
+        System.out.println(generateWeights(75));
     }
+
+    public static String generateWeights(int variables){
+        Random rnd = new Random();
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < variables; i++) {
+            result.append(rnd.nextInt(1) + 1).append(" ");
+        }
+        result.append("0\n");
+        return result.toString();
+    }
+
 
     /**
      * Generate SAT3 problem in "extended" DIMACS CNF format:

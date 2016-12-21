@@ -1,4 +1,4 @@
-package com.melkamar.evo;
+package com.melkamar.sat.evo;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -14,10 +14,10 @@ public class Evolution {
     private Random rnd = new Random();
 
     private double PROBABILITY_CROSSOVER = 0.25;
-    private double PROBABILITY_MUTATION = 0.01;
+    private double PROBABILITY_MUTATION = 0.025;
     private int TOURNAMENT_SIZE = 3;
-    private int POPULATION_SIZE = 200;
-    private int generations = 2500;
+    private int POPULATION_SIZE = 250;
+    private int generations = 5000;
 
     public Evolution(Problem problem) {
         this.problem = problem;
@@ -26,11 +26,12 @@ public class Evolution {
 
     public int solve() {
         String flag = "";
-        String descrstr = flag + "-cross" + PROBABILITY_CROSSOVER + "-mut" + PROBABILITY_MUTATION + "-tour" + TOURNAMENT_SIZE + "-pop" + POPULATION_SIZE + "-gen" + generations + ".dat";
+//        String descrstr = flag + "-cross" + PROBABILITY_CROSSOVER + "-mut" + PROBABILITY_MUTATION + "-tour" + TOURNAMENT_SIZE + "-pop" + POPULATION_SIZE + "-gen" + generations + ".dat";
+        String descrstr = "generic.dat";
+        String outName = "D:\\cvut-checkouted\\mi-paa\\hw\\5\\resources\\graphs\\out\\" + descrstr;
 
         try {
-            BufferedWriter out = new BufferedWriter(new FileWriter(
-                    "D:\\cvut-checkouted\\mi-paa\\hw\\4\\resources\\graphs\\" + descrstr));
+            BufferedWriter out = new BufferedWriter(new FileWriter(outName));
 
             initPopulation();
 
@@ -42,10 +43,15 @@ public class Evolution {
 
                 doSelection(currentIndividuals);
 
-//                System.out.println(stats(generation));
+                System.out.println(stats(generation));
                 out.write(gnuplotLine(generation));
                 out.newLine();
 
+                if (generation > 200 && !getBest().correct) {
+                    // restart evolution if still no good thing found
+                    generation = 1;
+                    initPopulation();
+                }
             }
             Individual endBest = getBest();
 
@@ -55,11 +61,20 @@ public class Evolution {
             System.out.println("   " + startBest);
             System.out.println("   " + endBest);
 
-            return endBest.value;
+
+//            return endBest.value;
+            makeGraph();
+            return 0;
         } catch (IOException e) {
             e.printStackTrace();
             return -1;
         }
+    }
+
+    private void makeGraph() throws IOException {
+        Process process = new ProcessBuilder("c:\\Program Files (x86)\\gnuplot\\bin\\gnuplot.exe",
+                                             "d:\\cvut-checkouted\\mi-paa\\hw\\5\\resources\\gnupl.script",
+                                             "-p").start();
     }
 
     private void initPopulation() {
@@ -153,11 +168,11 @@ public class Evolution {
 
     private String gnuplotLine(int idx) {
         return new StringBuilder()
-                .append(getBest().fitness)
+                .append(getBest().getFitness())
                 .append(",")
                 .append(getAverage())
                 .append(",")
-                .append(getWorst().fitness)
+                .append(getWorst().getFitness())
                 .toString();
     }
 
@@ -187,7 +202,7 @@ public class Evolution {
     private double getAverage() {
         int totalFitness = 0;
         for (int indIdx = 0; indIdx < population.length; indIdx++) {
-            totalFitness += population[indIdx].fitness;
+            totalFitness += population[indIdx].getFitness();
         }
 
         return ((double) totalFitness) / population.length;

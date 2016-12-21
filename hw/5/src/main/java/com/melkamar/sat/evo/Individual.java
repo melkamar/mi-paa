@@ -1,4 +1,6 @@
-package com.melkamar.evo;
+package com.melkamar.sat.evo;
+
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.Arrays;
 import java.util.Random;
@@ -7,11 +9,10 @@ import java.util.Random;
  * Created by Martin Melka (martin.melka@gmail.com) on 19.12.2016 11:49 11:54.
  */
 public class Individual implements Comparable {
-    boolean[] solutionVect;
+    private boolean[] solutionVect;
     Problem problem;
-    public int fitness;
-    public int weight;
-    public int value;
+    public boolean correct;
+    private int fitness;
 
     //    public final double BIT_FLIP_PROBABILITY = 0.5;
     private Random rnd = new Random();
@@ -32,24 +33,19 @@ public class Individual implements Comparable {
     }
 
     private void recalculateStats() {
-        int[] stats = countStats();
-        value = stats[0];
-        weight = stats[1];
-        fitness = stats[2];
+//        fitness = countStats();
+        countStats();
     }
 
     private Individual(Problem problem) {
-        solutionVect = new boolean[problem.itemsCount];
+        solutionVect = new boolean[problem.varCount];
         this.problem = problem;
     }
 
     public Individual(Individual individual) {
         solutionVect = Arrays.copyOf(individual.solutionVect, individual.solutionVect.length);
         this.problem = individual.problem;
-        int[] stats = countStats();
-        value = stats[0];
-        weight = stats[1];
-        fitness = stats[2];
+        recalculateStats();
     }
 
     public void randomize() {
@@ -60,6 +56,7 @@ public class Individual implements Comparable {
 
     /**
      * Mutate some random bits.
+     *
      * @return
      */
     public Individual mutate() {
@@ -74,6 +71,7 @@ public class Individual implements Comparable {
 
     /**
      * For each bit get probability and invert if proc.
+     *
      * @param probability
      * @return
      */
@@ -84,6 +82,7 @@ public class Individual implements Comparable {
             newIndividual.solutionVect[i] = !newIndividual.solutionVect[i];
         }
 
+        newIndividual.recalculateStats();
         return newIndividual;
     }
 
@@ -98,49 +97,78 @@ public class Individual implements Comparable {
                 individual.solutionVect[i] = otherIndividual.solutionVect[i];
             }
         }
+        individual.recalculateStats();
 
         return individual;
     }
 
-    private int[] countStats() {
-        int fitness;
-        int weight = 0;
-        int value = 0;
-        for (int i = 0; i < solutionVect.length; i++) {
-            if (solutionVect[i]) {
-                value += problem.items[i].value;
-                weight += problem.items[i].weight;
+    protected int countStats() {
+        correct = true;
+        int correctClauses = 0;
+        for (int i = 0; i < problem.clauses.length; i++) {
+            Problem.Clause clause = problem.clauses[i];
+
+            // Check if all variables are fit
+            if (clause.isCorrect(this.solutionVect)) {
+                correctClauses++;
+            } else {
+                correct = false;
             }
         }
 
-
-        // Recalculate fitness for broken individuals based on distance from the maximum weight
-        if (weight > problem.maxWeight) {
-            fitness = Math.max(
-                    0,
-                    value / 4 - (weight - problem.maxWeight) * 2);
-//            fitness = 0;
+        if (correct) {
+            fitness = 0;
+            for (int i = 0; i < solutionVect.length; i++) {
+                // if variable [i] is 1, add its weight to fitness
+                fitness += (solutionVect[i] ? 1 : 0) * problem.weights[i];
+            }
+            fitness *= 10;
         } else {
-            fitness = value;
+//            // If not correct, just make fitness be portion of the original
+//            fitness = 0;
+//            for (int i = 0; i < solutionVect.length; i++) {
+//                // if variable [i] is 1, add its weight to fitness
+//                fitness += (solutionVect[i] ? 1 : 0) * problem.weights[i];
+//            }
+//
+//            fitness /= 4;
+            fitness = correctClauses;
         }
-
-        return new int[]{
-                value, weight, fitness
-        };
+        return fitness;
     }
 
     @Override
     public String toString() {
         return "{" +
-                "fitness=" + fitness +
-                ", weight=" + weight +
-                ", value=" + value +
+                fitness + " " +
+                (correct ? " OK " : "FAIL") +
+                " (" + vectToBinary() + ") " +
                 '}';
+    }
+
+    private String vectToBinary() {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < solutionVect.length; i++)
+            builder.append((solutionVect[i] ? "1 " : "0 "));
+        return builder.toString();
     }
 
     @Override
     public int compareTo(Object o) {
         if (!(o instanceof Individual)) return 1;
         return this.fitness - ((Individual) o).fitness;
+    }
+
+    public int getFitness() {
+        return fitness;
+    }
+
+    public boolean[] getSolutionVect() {
+        return solutionVect;
+    }
+
+    public void setSolutionVect(boolean[] solutionVect) {
+        this.solutionVect = solutionVect;
+        recalculateStats();
     }
 }
