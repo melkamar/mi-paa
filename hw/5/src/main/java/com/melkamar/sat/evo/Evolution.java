@@ -1,6 +1,7 @@
 package com.melkamar.sat.evo;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
@@ -19,14 +20,76 @@ public class Evolution {
     private int POPULATION_SIZE = 250;
     private int generations = 5000;
 
-    public Evolution(Problem problem) {
+    private double MUT_START = 0.1;
+    private double MUT_BOTTOM = 0.01;
+    private double MUT_STEPS = generations / 2;
+    private double MUT_DELTA_START = (MUT_START - MUT_BOTTOM) / MUT_STEPS;
+    private double MUT_DELTA = MUT_DELTA_START;
+
+    private int idx = 1;
+
+    private boolean annealMutation = false; // If true, mutation probability will be annealed
+
+    public static double FITNESS_CORRECT_MULTIPLIER = 10;
+
+    public Evolution(Problem problem,
+                     double PROBABILITY_CROSSOVER,
+                     double PROBABILITY_MUTATION,
+                     int TOURNAMENT_SIZE,
+                     int POPULATION_SIZE,
+                     int generations,
+                     int idx
+    ) {
         this.problem = problem;
+        this.PROBABILITY_CROSSOVER = PROBABILITY_CROSSOVER;
+        this.PROBABILITY_MUTATION = PROBABILITY_MUTATION;
+        this.TOURNAMENT_SIZE = TOURNAMENT_SIZE;
+        this.POPULATION_SIZE = POPULATION_SIZE;
+        this.generations = generations;
+
+        this.idx = idx;
+
+        population = new Individual[POPULATION_SIZE];
+    }
+
+    public Evolution setFitnessMultiplier(double multiplier) {
+        Evolution.FITNESS_CORRECT_MULTIPLIER = multiplier;
+        return this;
+    }
+
+    public Evolution(Problem problem,
+                     double PROBABILITY_CROSSOVER,
+                     double MUT_START,
+                     double MUT_BOTTOM,
+                     double MUT_STEPS,
+                     int TOURNAMENT_SIZE,
+                     int POPULATION_SIZE,
+                     int generations,
+                     int idx) {
+        annealMutation = true;
+
+        this.problem = problem;
+        this.PROBABILITY_CROSSOVER = PROBABILITY_CROSSOVER;
+
+        this.PROBABILITY_MUTATION = MUT_START;
+        this.MUT_START = MUT_START;
+        this.MUT_BOTTOM = MUT_BOTTOM;
+        this.MUT_STEPS = MUT_STEPS;
+        this.MUT_DELTA_START = (MUT_START - MUT_BOTTOM) / MUT_STEPS;
+        this.MUT_DELTA = MUT_DELTA_START;
+
+        this.TOURNAMENT_SIZE = TOURNAMENT_SIZE;
+        this.POPULATION_SIZE = POPULATION_SIZE;
+        this.generations = generations;
+
+        this.idx = idx;
+
         population = new Individual[POPULATION_SIZE];
     }
 
     public int solve() {
         String flag = "";
-//        String descrstr = flag + "-cross" + PROBABILITY_CROSSOVER + "-mut" + PROBABILITY_MUTATION + "-tour" + TOURNAMENT_SIZE + "-pop" + POPULATION_SIZE + "-gen" + generations + ".dat";
+        String parameterVals = "id" + idx + "-cross" + PROBABILITY_CROSSOVER + "-mut" + PROBABILITY_MUTATION + "-tour" + TOURNAMENT_SIZE + "-pop" + POPULATION_SIZE + "-gen" + generations;
         String descrstr = "generic.dat";
         String outName = "D:\\cvut-checkouted\\mi-paa\\hw\\5\\resources\\graphs\\out\\" + descrstr;
 
@@ -39,11 +102,23 @@ public class Evolution {
             for (int generation = 1; generation < generations + 1; generation++) {
                 List<Individual> currentIndividuals = new ArrayList<>(Arrays.asList(population));
                 doCrossovers(currentIndividuals);
-                doMutation(currentIndividuals);
 
+                doMutation(currentIndividuals);
+                if (annealMutation) {
+                    PROBABILITY_MUTATION -= MUT_DELTA;
+                    PROBABILITY_MUTATION = Math.max(PROBABILITY_MUTATION, MUT_BOTTOM);
+                }
+
+                System.out.println("   Selection from " + currentIndividuals.size() + " individuals.");
                 doSelection(currentIndividuals);
 
                 System.out.println(stats(generation));
+                if (annealMutation) {
+                    System.out.println("    mutation %: " + PROBABILITY_MUTATION);
+                    System.out.println("      delta: " + MUT_DELTA);
+                    System.out.println();
+                }
+
                 out.write(gnuplotLine(generation));
                 out.newLine();
 
@@ -51,6 +126,8 @@ public class Evolution {
                     // restart evolution if still no good thing found
                     generation = 1;
                     initPopulation();
+                    if (annealMutation)
+                        PROBABILITY_MUTATION = MUT_START;
                 }
             }
             Individual endBest = getBest();
@@ -63,7 +140,7 @@ public class Evolution {
 
 
 //            return endBest.value;
-            makeGraph();
+            makeGraph(parameterVals);
             return 0;
         } catch (IOException e) {
             e.printStackTrace();
@@ -71,19 +148,43 @@ public class Evolution {
         }
     }
 
-    private void makeGraph() throws IOException {
+    private void makeGraph(String filename) throws IOException {
+
         Process process = new ProcessBuilder("c:\\Program Files (x86)\\gnuplot\\bin\\gnuplot.exe",
-                                             "d:\\cvut-checkouted\\mi-paa\\hw\\5\\resources\\gnupl.script",
-                                             "-p").start();
+//                                             "-e \"filename='"+filename+"'\"",
+                                             "-e", "\"\"filename='" + filename + "'\"\"",
+                                             "d:\\cvut-checkouted\\mi-paa\\hw\\5\\resources\\gnupl.file.script")
+                .inheritIO()
+                .directory(new File("d:\\cvut-checkouted\\mi-paa\\hw\\5\\resources\\graphs\\pics\\"))
+                .start();
+        try {
+            Thread.currentThread().sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+//        process = new ProcessBuilder("c:\\Program Files (x86)\\gnuplot\\bin\\gnuplot.exe",
+//                                     "d:\\cvut-checkouted\\mi-paa\\hw\\5\\resources\\gnupl.script",
+//                                     "-p").start();
     }
 
     private void initPopulation() {
+        for (int i = 0; i < population.length; i++) {
+            population[i] = Individual.createRandom(problem);
+        }
+    }
+
+    private void initPopulation2() {
         int typeIdx = population.length / 4;
         for (int i = 0; i < typeIdx; i++) {
             population[i] = Individual.createEmpty(problem);
         }
 
-        for (int i = typeIdx; i < population.length; i++) {
+        for (int i = typeIdx; i < typeIdx * 2; i++) {
+            population[i] = Individual.createFull(problem);
+        }
+
+        for (int i = typeIdx * 2; i < population.length; i++) {
             population[i] = Individual.createRandom(problem);
         }
     }
@@ -169,7 +270,9 @@ public class Evolution {
     private String gnuplotLine(int idx) {
         return new StringBuilder()
                 .append(getBest().getFitness())
+//                .append(getBest().getFitnessOrig())
                 .append(",")
+//                .append(getAverageOrig())
                 .append(getAverage())
                 .append(",")
                 .append(getWorst().getFitness())
@@ -179,7 +282,7 @@ public class Evolution {
     private Individual getBest() {
         Individual best = null;
         for (int indIdx = 0; indIdx < population.length; indIdx++) {
-            if (best == null || population[indIdx].compareTo(best) > 0) {
+            if (best == null || population[indIdx].compareTo(best) > 0 && population[indIdx].correct) {
                 best = population[indIdx];
             }
         }
@@ -207,5 +310,14 @@ public class Evolution {
 
         return ((double) totalFitness) / population.length;
     }
+
+//    private double getAverageOrig() {
+//        int totalFitness = 0;
+//        for (int indIdx = 0; indIdx < population.length; indIdx++) {
+//            totalFitness += population[indIdx].getFitnessOrig();
+//        }
+//
+//        return ((double) totalFitness) / population.length;
+//    }
 
 }

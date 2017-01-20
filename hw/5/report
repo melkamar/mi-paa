@@ -1,0 +1,312 @@
+===== Úkol 5 - 20.1.2017 =====
+
+==== Popis problému ====
+Řešený problém je maximalizace 3SAT, tj. máme zadán seznam proměnných, jejich ohodnocení a množinu klauzulí, kde
+každá má právě tři prvky v disjunkci. Tedy obecně (a+b+c)*(d+e+f)... .
+
+Úkolem je najít takové ohodnocení proměnných, kde jejich sumární váha je maximální a řešení
+je zároveň validní (tj. formule je splněna).
+
+==== Popis algoritmu ====
+Pro závěrečnou úlohu jsem zvolil genetický algoritmus - simulovanou evoluci. Tento algoritmus vychází z biologické evoluce organismů v přírodě. Jednotlivá (kandidátní) řešení mutují, kříží se mezi sebou a bojují o "přežití" napříč generacemi. Kritériem přežití je tzv. fitness funkce, která jedním číslem vyjadřuje celkovou zdatnost jedince (řešení). Ve zbytku této sekce popíšu, jak funguje moje konkrétní implementace.
+
+=== Jedinec (řešení) ===
+Jedincem je prvek stavového prostoru, v tomto případě zakódován jako binární vektor.
+
+
+=== Hlavní cyklus (průchod = generace) ===
+Před spuštěním evoluce nejprve generuji počáteční populaci. Zkusil jsem několik metod, ty jsou detailněji popsané v sekci Experimenty - Inicializace.
+
+Následuje průběh evoluce. "Jednotkou" evoluce je jedna generace - ta obsahuje stanovený počet jedinců.
+V rámci jedné generace proběhne křížení, mutace a následná selekce přeživších tak, aby do další generace vstupoval opět odpovídající počet jedinců.
+
+Pseudokód vypadá takto:
+<code>
+initPopulation()
+
+for i in 0..generations do
+    doCrossovers()
+    doMutations()
+    doSelection()
+done
+
+return best()
+</code>
+
+=== Fitness funkce ===
+Použitá fitness funkce vypadá následovně:
+    Řešení je validní:
+        fitness = 10 * sum(weight[i], for val[i]==1), tedy součet vah, kde ohodnocení odpovídající proměnné je 1, navíc vynásobeno 10 (magic constant, dávala rozumné výsledky)
+    Řešení není validní:
+        fitness -> počet splněných klauzulí
+
+Tímto způsobem ve funkci zohledním jak váhu ohodnocených proměnných u validních řešení (kterou maximalizuji),
+tak i počet splněných klauzulí v případě nevalidního řešení.
+
+Konstantu 10 jsem zvolil, protože dávala "rozumné" výsledky při implementaci a prvotním testování.
+
+
+=== "Brzká fáze" evoluce ===
+Pro některá zadání SAT (3SAT), která mají malý počet možných validních ohodnocení proměnných, se může stát, že při inicializaci ani následné evoluci řešení z tohoto
+počátečního stavu nebude nalezena žádná přípustná kombinace ohodnocení. Kvůli tomu po stanoveném počtu generací (250) celou evoluci pustím znovu v případě, že nebylo nalezeno ani jedno validní řešení.
+
+Jelikož mám v selekci elitismus (a předpokládám, že fitness kteréhokoliv validního řešení bude vždy větší než fitness nevalidního), nemůže se nikdy stát, že bych o přípustné řešení přišel.
+Pokud jednou nějaké najdu, pak vždy budu mít toto, nebo nějaké lepší, k dispozici.
+
+
+=== Křížení (doCrossovers) ===
+Pro každého jedince v generaci náhodně zvolím, zda se bude křížit, nebo ne (na základě odpovídajícího parametru).
+
+Pro výchozí operátor křížení jsem zvolil uniformní křížení. To znamená, že pro křížení dvou jedinců provedu tyto kroky:
+  * Vytvořím nového (prázdného) jedince
+  * Vygeneruji binární vektor stejné délky jako vektor řešení
+  * Pro každý bit vektoru řešení provedu:
+    * Pokud je bit vygenerovaného vektoru 0, nastavím odpovídající bit nového jedince stejně, jako jej má nastaven první z křížených jedinců
+    * Pokud je bit vygenerovaného vektoru 1, nastavím odpovídající bit nového jedince stejně, jako jej má nastaven druhý z křížených jedinců
+  * Nového jedince přidám do zpracovávané generace
+
+=== Mutace (doMutations) ===
+Pro každého jedince v generaci volám metodu mutate(). Tato metoda s určitou pravděpodobností invertuje některé jeho bity.
+
+Operátor mutace funguje následovně:
+  * Vytvořím kopii mutovaného jedince
+  * Postupně pro každý bit v jeho vektoru vygeneruji náhodné číslo, porovnám s pravděpodobností mutace
+    * Pokud je vygenerované číslo menší než pravděpodobnost mutace, daný bit invertuji.
+  * Nového jedince přidám do zpracovávané generace
+
+=== Selekce (doSelection) ===
+Na konci zpracovávání generace bude počet jedinců větší nebo rovný požadované velikosti populace. Je tedy třeba ji nějakým způsobem zmenšit.
+Jako výchozí operátor selekce jsem zvolil metodu Turnaje.
+
+Výsledkem jednoho turnaje je jeden vítězný jedinec, který přežije do další generace. Spustím tedy tolik turnajů, kolik je žádaná velikost populace.
+
+Jeden turnaj probíhá následovně:
+  * Ze všech jedinců, kteří ještě nevyhráli turnaj, vyber náhodně tolik, kolik je dáno parametrem (velikost turnaje)
+  * Z vybraných jedinců vyber nejlepšího (nejvyšší hodnota fitness)
+  * Nejlepšího přidej do následující generace a označ, že už vyhrál turnaj
+
+Před samotným turnajem navíc přejde nejzdatnější jedinec do další generace automaticky (elitismus velikosti 1).
+
+=== Ukončení evoluce ===
+Evoluci ukončuji pevně stanoveným počtem generací. Další možností by bylo ukončení po určitém počtu generací bez znatelného zlepšení řešení, ale pro moje účely bude postačovat konstantní doba.
+
+==== Experiment ====
+
+Experimentální určení parametrů heuristiky provedu na několika málo testovacích instancích. Následně provedu testování na dalších
+několika instancích pro ověření, že heuristika pracuje tak, jak od ní očekávám i pro nové instance.
+
+Průběh evoluce lze usměrnit několika parametry. Zde se budu věnovat experimentům s těmito parametry:
+  - Pravděpodobnost mutace
+  - Pravděpodobnost křížení
+  - Selekční tlak (tj. počet jedinců v turnaji) a strategie selekce (turnaj/ruleta)
+  - Velikost populace
+
+Vzhledem k tomu, že k testovacím instancím neznám optimální řešení, budu správný průběh heuristiky odvozovat z grafů.
+Na nich je zobrazena průměrná hodnota fitness funkce v závislosti na generaci pro nejlepšího jedince a průměr všech jedinců.
+
+=== Instance ===
+Experimenty jsem začal provádět na instanci 3SAT o 75 proměnných a 225 klauzulích. Tato instance měla řešení a měla více než jedno,
+jelikož se v průběhu heuristiky zlepšovalo maximální přípustné řešení.
+
+=== Výchozí parametry ===
+Na základě rad cvičícího a předchozí aplikace této heuristiky jsem inicální hodnoty parametrů nastavil takto:
+  - Pravděpodobnost mutace = 2.5%
+  - Pravděpodobnost křížení = 25%
+  - Selekční tlak = 3 jedinci v turnaji
+  - Velikost populace = 250
+  - Počet generací = 5000
+
+=== Mutace ===
+Pravděpodobnost mutace určuje míru generace nových, více či méně pozměněných, jedinců v generaci. Příliš nízká
+pravděpodobnost může znamenat nežádoucí efekt předčasné konvergence populace, příliš vysoká pak způsobuje až moc
+nahodilý průchod stavovým prostorem - skoky do vzdálených stavů - a v tomto případě prakticky degraduje na náhodný
+průchod prostorem, místo postupné optimalizace.
+
+Heuristiku jsem spustil pro různé hodnoty pravděpodobnosti mutace, a to:
+  - 0.1 %
+  - 1 %
+  - 2.5 %
+  - 5 %
+  - 10 %
+  - 20 %
+
+==Grafy průběhu těchto experimentů jsou následující (postupně tak, jak jsem parametry popsal výše):==
+
+{{:student:melkamar:hw5:mutation:cross0.25-mut0.001-tour3-pop250-gen5000.png|0.1 %}}
+{{:student:melkamar:hw5:mutation:cross0.25-mut0.01-tour3-pop250-gen5000.png|1 %}}
+{{:student:melkamar:hw5:mutation:cross0.25-mut0.025-tour3-pop250-gen5000.png|2.5 %}}
+{{:student:melkamar:hw5:mutation:cross0.25-mut0.05-tour3-pop250-gen5000.png|5 %}}
+{{:student:melkamar:hw5:mutation:cross0.25-mut0.1-tour3-pop250-gen5000.png|10 %}}
+{{:student:melkamar:hw5:mutation:cross0.25-mut0.2-tour3-pop250-gen5000.png|20 %}}
+
+Parametry se projevují na běhu heuristiky tak, jak jsem očekával. Mým cílem je mít populaci dostatečně divergentní, abych
+se vyvaroval uvíznutí v lokálních minimech a operace křížení poskytovala nové jedince. Diverzitu populace odhadnu ze
+vztahu maximální a průměrné fitness. V grafech s malými pravděpodobnostmi křížení jsou velmi blízko, což naznačuje, že se
+populace skládá z několika málo jedinců a všichni jsou podobní tomu maximálnímu. Grafy heuristiky s velkou pravděpobodností pak
+ukazují, že průměrná fitness hodnota se drží v konstantní rovině a vůbec neroste spolu s tou maximální. To znamená, že
+i když je v populaci nějaký nadprůměrný jedinec, zbytek populace ho "nenásleduje", což je v tomto algoritmu žádoucí -
+chceme, aby konvergovala populace jako celek, ne jen jedinec.
+
+Z těchto důvodů bude "rozumný" parametr pro pravděpodobnost ležet někde kolem hodnoty 2-3 %.
+
+=== Křížení ===
+Pravděpodobnost křížení určuje, zda každého z jedinců zkřížit s nějakým jiným a tim vytvořit nového. Můj operátor křížení
+je uniformní křížení, kdy v každém novém jedinci bude náhodný poměr obou křížených jedinců. Při menší pravděpodobnosti křížení
+bude její vliv v porovnání s mutací nepatrný, takže stejně jako v předchozím případě je třeba nalézt rozumnou hodnotu tak,
+aby populace řešení byla dostatečně diverzifikovaná.
+
+Opět jsem zkoušel pouštět heuristiku pro různé pravděpodobnosti křížení. Vzhledem k nálezu v předchozí sekci jsem jako
+pravděpodobnost mutace zvolil "rozumnou" hodnotu 2.5%. Hodnoty byly tyto:
+  - 1 %
+  - 5 %
+  - 10 %
+  - 20 %
+  - 30 %
+  - 50 %
+  - 90 %
+
+== Grafy průběhu experimentů pro určení parametru křížení (v pořadí, jak byly popsány výše) ==
+
+{{:student:melkamar:hw5:crossover:1-cross0.01-mut0.025-tour3-pop250-gen5000.png|1 %}}
+{{:student:melkamar:hw5:crossover:2-cross0.05-mut0.025-tour3-pop250-gen5000.png|5 %}}
+{{:student:melkamar:hw5:crossover:3-cross0.1-mut0.025-tour3-pop250-gen5000.png|10 %}}
+{{:student:melkamar:hw5:crossover:4-cross0.2-mut0.025-tour3-pop250-gen5000.png|20 %}}
+{{:student:melkamar:hw5:crossover:5-cross0.3-mut0.025-tour3-pop250-gen5000.png|30 %}}
+{{:student:melkamar:hw5:crossover:6-cross0.5-mut0.025-tour3-pop250-gen5000.png|50 %}}
+{{:student:melkamar:hw5:crossover:7-cross0.9-mut0.025-tour3-pop250-gen5000.png|90 %}}
+
+Z grafů je zjevné, že vliv parametru pravděpodobnosti křížení nemá tak znatelný vliv na konvergenci populace jako
+pravděpodobnost mutace. Opět chci, aby fitness hodnota průměru byla rozumně blízko té maximální, ale aby k ní nekonvergovala
+příliš blízko. Pravděpodobnost křížení mezi 20 - 30 % se mi jeví jako rozumná.
+
+=== Velikost populace ===
+Na základě přednášek, rad od cvičícího a výstupů při implementaci heuristiky jsem jako výchozí velikost populace
+stanovil na 250. Tato hodnota by neměla být příliš nízká, kdy by nebyl dostatečný prostor pro mutaci a křížení jedinců
+napříč generacemi, ani není natolik vysoká, kdy by výpočet jedné generace trval moc dlouho a algoritmus by spíš než
+evoluci simuloval náhodný průchod stavovým prostorem.
+
+Pro úplnost jsem nicméně i velikost populace zkusil parametrizovat a vynést do grafů:
+  - 50
+  - 100
+  - 150
+  - 250
+  - 500
+  - 1000
+
+== Grafy průběhu experimentů pro velikost populace ==
+
+{{:student:melkamar:hw5:population:1-cross0.25-mut0.025-tour3-pop50-gen5000.png|}}
+{{:student:melkamar:hw5:population:2-cross0.25-mut0.025-tour3-pop100-gen5000.png|}}
+{{:student:melkamar:hw5:population:3-cross0.25-mut0.025-tour3-pop150-gen5000.png|}}
+{{:student:melkamar:hw5:population:4-cross0.25-mut0.025-tour3-pop250-gen5000.png|}}
+{{:student:melkamar:hw5:population:5-cross0.25-mut0.025-tour3-pop500-gen5000.png|}}
+{{:student:melkamar:hw5:population:6-cross0.25-mut0.025-tour3-pop1000-gen5000.png|}}
+
+V grafech je vidět vlastnost většího počtu jedinců v generaci - jejich průměrná fitness hodnota napříč generacemi
+se ustaluje a rozptyly se zmenšují.
+
+Výkyv v kvalitě řešení je daný nedeterminismem algoritmu - při opakovaných bězích se rozdíly mezi jednotlivými nastaveními
+prakticky smazaly s tím, že větší populace častěji poskytovaly kvalitnější řešení.
+
+Jako rozumná hodnota počtu jedinců vzhledem k době výpočtu se mi jeví 250-500.
+
+=== Počet generací ===
+Tento parametr jsem nechal na jeho výchozí hodnotě, jelikož v ptědchozích bězích algoritmus dosáhl svého lokálního optima
+mnohem dříve, zpravidla do 2500 generací. Pokud by z grafu bylo patrné, že má stále rostoucí tendenci, pak bych
+tento parametr zvýšil a pozoroval, co se bude dít dál.
+
+==== Další úpravy ====
+Kromě úprav hodnot základních parametrů jsem zkusil použít některé další, potencionálně zlepšující, techniky. Těm se
+budu věnovat v této sekci.
+
+Zároveň zde pracuji s jednodušší instancí problému. Z původních 75 proměnných a 225 klauzulí jsem ji změnil na
+75 proměnných a 145 klauzulí. Dá se předpokládat, že takováto instance bude mít větší množství přípustných řešení a tak
+bude více zjevná postupná evoluce a zlepšení řešení - doufám, že zlepšení nebudou tolik skokové.
+
+
+=== Zjednodušené ochlazování parametru mutace ===
+Myšlenkatéto techniky je následující: na počátku evoluce chci obsáhnout co největší podprostor prohledávaného
+stavového prostoru. Předpokládám, že optimální řešení nemám a bude existovat nějaké mimo lokální optima, ve kterých se
+nacházím. Pravděpodobnost mutace tedy může být velmi vysoká, abych se z lokálních optim dostal.
+
+Postupem času předpokládám, že již mám nějaká, relativně dobrá, řešení. Těch už se nechci zbavit, takže pravděpodobnost
+mutace budu potřebovat menší.
+
+Pravděpodobnost mutace je při této technice určena třemi faktory:
+  - Počáteční pravděpodobností
+  - Konečnou pravděpodobností (i na konci snižování pravděpodobnosti stále chci nenulovou pravděpodobnost)
+  - Počtem generací, než dosáhnu konečné pravděpodobnosti
+
+V experimentálním vyhodnocení této techniky jako konečnou pravděpodobnost zvolím tu, co v předchozích fázích poskytovala
+nejlepší výsledky - tj. 2.5 %.
+
+Jedna testovaná sada je tato:
+  - Počáteční pst = 50%
+  - Konečná pst = 2.5%
+  - Počet generací do dosažení konečné pst = {500, 1000, 2000, 3000, 4000, 5000}
+
+** Grafy pro ochlazování mutace **
+{{:student:melkamar:hw5:anneal:id0-cross0.25-mut0.5-tour3-pop250-gen5000.png|}}
+{{:student:melkamar:hw5:anneal:id1-cross0.25-mut0.5-tour3-pop250-gen5000.png|}}
+{{:student:melkamar:hw5:anneal:id2-cross0.25-mut0.5-tour3-pop250-gen5000.png|}}
+{{:student:melkamar:hw5:anneal:id3-cross0.25-mut0.5-tour3-pop250-gen5000.png|}}
+{{:student:melkamar:hw5:anneal:id4-cross0.25-mut0.5-tour3-pop250-gen5000.png|}}
+{{:student:melkamar:hw5:anneal:id5-cross0.25-mut0.5-tour3-pop250-gen5000.png|}}
+
+Průběh grafu, zejména průměrných hodnot fitness je zjevně odlišný od předchozích výstupů. Pro srovnání jsem pustil
+nad stejnou instancí i algoritmus bez ochlazování s nejlepšími nalezenými parametry. Průběh vypadal takto:
+
+{{:student:melkamar:hw5:easier:reference.png|}}
+
+Zde se ukazuje (a při opakovaných bězích potvrzuje), že tato technika nevede ke zlepšení řešení tak, jak jsem doufal.
+Výsledek původního algoritmu většinou minimálně vyrovnal výstupy algoritmů s upraveným způsobem mutace.
+
+=== Úprava fitness funkce ===
+V posledním grafu je patrné, že zhruba uprostřed, kde došlo ke zlepšení maximálního nalezeného řešení, zároveň došlo k
+poklesu průměrného řešení. Moje interpretace této skutečnosti je taková, že algoritmus byl mezi generacemi cca
+500 - 2500 zaseklý v lokálním minimu, fitness funkce "trestala" nevalidní řešení příliš, takže se nedostávaly do dalších generací.
+Kolem generace 2500, kdy došlo ke zlepšení, se (naštěstí) některá nevalidní řešení dostala do populace, tím zmenšila
+průměrnou hodnotu populace, ale následně přispěla ke zlepšení maximálního řešení.
+
+Pro ověření zkusím pustit algoritmus s několika různými konstantami při výpočtu fitness funkce, kterou počítám takto:
+    Řešení je validní:
+        fitness = 10 * sum(weight[i], for val[i]==1), tedy součet vah, kde ohodnocení odpovídající proměnné je 1, navíc vynásobeno 10 (magic constant, dávala rozumné výsledky)
+    Řešení není validní:
+        fitness -> počet splněných klauzulí
+
+Algoritmus jsem pustil pro konstanty u validního řešení rovné 10 ... 1. U konstant 1 a 2 se několikrát po sobě ukázalo,
+že výsledek byl suboptimální. U ostatních byl výsledek srovnatelný s předchozím řešením. Občas se znovu objevil onen "skok" v maximálním řešení a propad v průměrném, nehledě na zvolenou konstantu.
+Z toho plyne, že tento parametr nehraje roli, v kterou jsem doufal.
+
+
+
+==== Práce do budoucna ====
+Dalším krokem ve zlepšování optimalizace by bylo zkoušení jiných fitness funkcí a pozorování jejich chování. V poslední
+sekci jsem zjistil, že úprava konstantního multiplikátoru nijak zásadně neovlivňuje chování algoritmu, takže by bylo
+vhodné vyzkoušet další funkce; mohly by poskytovat zajímavé výsledky.
+
+Dále je možné změnit operátor selekce - např. ruletová, místo turnaje. Z mých předchozích zkušeností ale turnaj fungoval
+zpravidla lépe. Je nicméně možné, že pro tuto specifickou úlohu bude i ruleta poskytovat rozumné řešení.
+
+Další možné zlepšení je použití některé metody pro diverzifikaci populace - např. "ostrovní metoda", kde necháváme běžet
+několik nezávislých evolucí vedle sebe a jednou za čas někteří jedinci "přeletí" na okolní ostrovy (jiné evoluce). Tím
+dojde k promíchání populace, která mezitím mohla uváznout v lokálním optimu.
+
+==== Závěr ====
+Popsal jsem problém maximalizace 3SAT a prošel způsob jeho řešení pomocí genetického algoritmu.
+Dále jsem se tento algoritmus pomocí experimentálních výsledků snažil nakonfigurovat tak, aby podával co nejlepší řešení.
+
+Vzhledem k absenci exaktních optimálních řešení jsem kvalitu algoritmu posuzoval podle grafů, jež popisovaly vývoj
+optimálních a průměrných řešení v populaci. Očekávaný tvar křivky jsem pro konečnou konfiguraci pozoroval u většiny
+testovaných instancí.
+
+Algoritmus jsem zkusil doplnit o vlastní nápad - "ochlazování" pravděpodobnosti mutace, ale ukázalo se, že toto nemělo
+znatelný pozitivní vliv na kvalitu výsledných řešení.
+
+Algoritmus pracuje tak, jak bych od něj očekával. Je schopen iterativně zlepšovat kvalitu řešení v únosném čase a
+demonstruje tak efektivitu genetických algoritmů.
+
+==== Stažení ====
+Všechny potřebné soubory jsou k dispozici na GitHubu:
+
+

@@ -1,6 +1,5 @@
 set datafile separator ","
-set terminal pngcairo font ',8' enhanced
-set output 'graphs/-cross0.5-mut0.01-tour3-pop200-gen1500.png'
+set terminal wxt font ',8' enhanced
 set style data lines
 set key on autotitle columnhead inside bottom right
 set xlabel "generation"

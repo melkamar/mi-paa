@@ -8,6 +8,7 @@ import java.util.Random;
 /**
  * Created by Martin Melka (martin.melka@gmail.com) on 19.12.2016 11:49 11:54.
  */
+@SuppressWarnings("Duplicates")
 public class Individual implements Comparable {
     private boolean[] solutionVect;
     Problem problem;
@@ -32,6 +33,16 @@ public class Individual implements Comparable {
         return individual;
     }
 
+    public static Individual createFull(Problem problem) {
+        Individual individual = new Individual(problem);
+        for (int i = 0; i < problem.varCount; i++)
+            individual.solutionVect[i] = true;
+
+        individual.recalculateStats();
+
+        return individual;
+    }
+
     private void recalculateStats() {
 //        fitness = countStats();
         countStats();
@@ -49,7 +60,6 @@ public class Individual implements Comparable {
     }
 
     public void randomize() {
-        Random rnd = new Random();
         for (int i = 0; i < solutionVect.length; i++)
             solutionVect[i] = rnd.nextBoolean();
     }
@@ -103,6 +113,41 @@ public class Individual implements Comparable {
     }
 
     protected int countStats() {
+        correct = true;
+        int correctClauses = 0;
+        for (int i = 0; i < problem.clauses.length; i++) {
+            Problem.Clause clause = problem.clauses[i];
+
+            // Check if all variables are fit
+            if (clause.isCorrect(this.solutionVect)) {
+                correctClauses++;
+            } else {
+                correct = false;
+            }
+        }
+
+        if (correct) {
+            fitness = 0;
+            for (int i = 0; i < solutionVect.length; i++) {
+                // if variable [i] is 1, add its weight to fitness
+                fitness += (solutionVect[i] ? 1 : 0) * problem.weights[i];
+            }
+            fitness *= Evolution.FITNESS_CORRECT_MULTIPLIER;
+        } else {
+//            // If not correct, just make fitness be portion of the original
+//            fitness = 0;
+//            for (int i = 0; i < solutionVect.length; i++) {
+//                // if variable [i] is 1, add its weight to fitness
+//                fitness += (solutionVect[i] ? 1 : 0) * problem.weights[i];
+//            }
+//
+//            fitness /= 4;
+            fitness = correctClauses;
+        }
+        return fitness;
+    }
+
+    public int getFitnessOrig(){
         correct = true;
         int correctClauses = 0;
         for (int i = 0; i < problem.clauses.length; i++) {

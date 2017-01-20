@@ -1,0 +1,12 @@
+set datafile separator ","
+#set terminal wxt font ',8' enhanced
+set terminal pngcairo font ',8' enhanced
+set style data lines
+set output sprintf('%s.png', filename)
+set key on autotitle columnhead inside bottom right
+set xlabel "generation"
+set ylabel "fitness"
+plot "d:/cvut-checkouted/mi-paa/hw/5/resources/graphs/out/generic.dat" using 0:1 title 'max', \
+     '' using 0:2 title 'avg', \
+     #'' using 0:3 title 'min'
+
