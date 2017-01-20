@@ -307,6 +307,11 @@ Algoritmus pracuje tak, jak bych od něj očekával. Je schopen iterativně zlep
 demonstruje tak efektivitu genetických algoritmů.
 
 ==== Stažení ====
-Všechny potřebné soubory jsou k dispozici na GitHubu:
+Všechny potřebné soubory jsou k dispozici na GitHubu: https://github.com/melkamar/mi-paa/tree/master/hw/5
+
+  * src - zdrojové kódy (Java)
+  * resources - instance a podpůrné skripty
+    * resources/problems/set/easy/* - instance, na kterých bylo puštěno závěrečné "zhodnocení".
+    * resources/graphs/pics/* - výstupy běhu algoritmu na předchozích instancích.
 
 
